@@ -50,16 +50,17 @@ def extract_opening_times(details_div):
     return opening_times
 
 
+# TODO: Make extraction methods less gross
 def extract_capacity(details_div):
     return details_div.find_next("div").find_next_sibling("div").get_text().strip()
 
 
 def extract_cost(details_div):
-    return ""
+    return details_div.find_next("div").find_next_sibling("div").find_next_sibling("div").get_text().strip()
 
 
 def extract_overnight_parking(details_div):
-    return ""
+    return ": Yes" in details_div.find_next("div").find_next_sibling("div").find_next_sibling("div").find_next_sibling("div").get_text()
 
 
 def enrich_location(location: ParkAndRideLocation):
