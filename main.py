@@ -51,7 +51,7 @@ def extract_opening_times(details_div):
 
 
 def extract_capacity(details_div):
-    return ""
+    return details_div.find_next("div").find_next_sibling("div").get_text().strip()
 
 
 def extract_cost(details_div):
