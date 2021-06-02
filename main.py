@@ -1,8 +1,8 @@
 import logging
-import requests
-
-from bs4 import BeautifulSoup
 from itertools import groupby
+
+import requests
+from bs4 import BeautifulSoup
 
 TFGM_BASE_URL = "https://tfgm.com"
 PARK_AND_RIDE_BASE_URL = TFGM_BASE_URL + "/public-transport/park-and-ride"
@@ -84,7 +84,6 @@ def main():
         logging.error(f"Failed to fetch Park and Ride locations from {PARK_AND_RIDE_BASE_URL}")
     for location in locations:
         enrich_location(location)
-    for location in locations:
         print(location)
 
 
