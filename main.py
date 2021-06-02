@@ -2,6 +2,7 @@ import logging
 import requests
 
 from bs4 import BeautifulSoup
+from itertools import groupby
 
 TFGM_BASE_URL = "https://tfgm.com"
 PARK_AND_RIDE_BASE_URL = TFGM_BASE_URL + "/public-transport/park-and-ride"
@@ -36,54 +37,44 @@ def transform_location_list_item(location_list_item):
     return location
 
 
-def extract_address(div):
-    return div.get_text(", ")
+def extract_address(details_div):
+    return details_div.find("div").get_text(", ")
 
 
-def extract_opening_times(div):
+def extract_opening_times(details_div):
+    opening_times = []
+    for row in details_div.find_all("tr"):
+        day = row.find("td", attrs={"opening-times-day"}).text.rstrip(":")
+        times = row.find("td", attrs={"opening-times-time"}).text
+        opening_times.append({day: times})
+    return opening_times
+
+
+def extract_capacity(details_div):
     return ""
 
 
-def extract_capacity(div):
+def extract_cost(details_div):
     return ""
 
 
-def extract_cost(div):
-    return ""
-
-
-def extract_overnight_parking(div):
+def extract_overnight_parking(details_div):
     return ""
 
 
 def enrich_location(location: ParkAndRideLocation):
-    details_map = fetch_detail_divs(location)
-    if "Address" in details_map:
-        location.address = extract_address(details_map["Address"])
-    if "Opening times" in details_map:
-        location.opening_times = extract_opening_times(details_map["Opening times"])
-    if "Spaces" in details_map:
-        location.capacity = extract_capacity(details_map["Spaces"])
-    if "Charges" in details_map:
-        location.cost = extract_cost(details_map["Charges"])
-    if "Other information" in details_map:
-        location.overnight_parking = extract_overnight_parking(details_map["Other information"])
-
-
-def fetch_detail_divs(location):
     location_page = BeautifulSoup(requests.get(TFGM_BASE_URL + location.url).text, "html.parser")
-    details_map = pair_divs_with_associated_headers(location_page)
-    return details_map
+    details_div = location_page.find("div", attrs={"class", "park-and-ride-location"})
+    location.address = extract_address(details_div)
+    location.opening_times = extract_opening_times(details_div)
+    location.capacity = extract_capacity(details_div)
+    location.cost = extract_cost(details_div)
+    location.overnight_parking = extract_overnight_parking(details_div)
 
 
-def pair_divs_with_associated_headers(location_page):
-    details_div = location_page.find("div", attrs={"class": "park-and-ride-location"})
-    headers = [header.text for header in details_div.find_all("h3")]
-    inner_divs = details_div.find_all("div")
-    details_map = {}
-    for i in range(len(headers)):
-        details_map[headers[i]] = inner_divs[i]
-    return details_map
+def split_tag_list_on_hr(details_div):
+    children = [child for child in details_div.children]
+    return [list(group) for k, group in groupby(children, lambda x: x.name == "hr") if not k]
 
 
 def main():
