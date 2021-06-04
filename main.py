@@ -115,7 +115,7 @@ def main():
     if not locations:
         logging.error(f"Failed to fetch Park and Ride locations from {PARK_AND_RIDE_BASE_URL}")
     logging.info("Fetching additional information about each Park and Ride location")
-    for location in progressbar(locations, prefix="Enriching locations"):
+    for location in progressbar(locations, prefix="Enriching locations", fd=sys.stdout):
         enrich_location(location)
     logging.info("Enrichment complete")
     locations.sort(key=lambda x: x.capacity["spaces"])
