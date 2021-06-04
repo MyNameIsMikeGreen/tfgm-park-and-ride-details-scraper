@@ -15,10 +15,10 @@ class ParkAndRideLocation(object):
                  "cost", "overnight_parking"]
 
     def __str__(self):
-        return f"Name: {self.name}; Latitude: {self.latitude}; Longitude: {self.longitude}; " \
-               f"Transport Mode: {self.transport_mode}; URL: {self.url}; Address: {self.address}; " \
-               f"Opening Times: {self.opening_times}; Capacity: {self.capacity}; Cost: {self.cost}; " \
-               f"Overnight Parking: {self.overnight_parking};"
+        return f"{self.name}\n\tLatitude: {self.latitude}\n\tLongitude: {self.longitude}\n" \
+               f"\tTransport Mode: {self.transport_mode}\n\tURL: {self.url}\n\tAddress: {self.address}\n" \
+               f"\tOpening Times: {self.opening_times}\n\tCapacity: {self.capacity}\n\tCost: {self.cost}\n" \
+               f"\tOvernight Parking: {self.overnight_parking}"
 
 
 def fetch_park_and_ride_locations():
@@ -52,7 +52,7 @@ def extract_opening_times(content_element):
 
 
 def extract_capacity(content_element):
-    return content_element.get_text().strip()
+    return content_element.get_text().strip().replace("\n", ", ")
 
 
 def extract_cost(content_element):
@@ -98,7 +98,7 @@ def main():
         logging.error(f"Failed to fetch Park and Ride locations from {PARK_AND_RIDE_BASE_URL}")
     for location in locations:
         enrich_location(location)
-        print(location)
+        print(str(location) + "\n")
 
 
 if __name__ == '__main__':
