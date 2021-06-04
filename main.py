@@ -1,8 +1,9 @@
+import itertools
 import logging
 from itertools import groupby
 
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 
 TFGM_BASE_URL = "https://tfgm.com"
 PARK_AND_RIDE_BASE_URL = TFGM_BASE_URL + "/public-transport/park-and-ride"
@@ -37,40 +38,53 @@ def transform_location_list_item(location_list_item):
     return location
 
 
-def extract_address(details_div):
-    return details_div.find("div").get_text(", ")
+def extract_address(content_element):
+    return content_element.get_text(", ")
 
 
-def extract_opening_times(details_div):
+def extract_opening_times(content_element):
     opening_times = []
-    for row in details_div.find_all("tr"):
+    for row in content_element.find_all("tr"):
         day = row.find("td", attrs={"opening-times-day"}).text.rstrip(":")
         times = row.find("td", attrs={"opening-times-time"}).text
         opening_times.append({day: times})
     return opening_times
 
 
-# TODO: Make extraction methods less gross
-def extract_capacity(details_div):
-    return details_div.find_next("div").find_next_sibling("div").get_text().strip()
+def extract_capacity(content_element):
+    return content_element.get_text().strip()
 
 
-def extract_cost(details_div):
-    return details_div.find_next("div").find_next_sibling("div").find_next_sibling("div").get_text().strip()
+def extract_cost(content_element):
+    return content_element.get_text().strip()
 
 
-def extract_overnight_parking(details_div):
-    return ": Yes" in details_div.find_next("div").find_next_sibling("div").find_next_sibling("div").find_next_sibling("div").get_text()
+def extract_overnight_parking(content_element):
+    return ": Yes" in content_element.get_text()
+
+
+def fetch_headers_and_content(location_page):
+    """
+    Map the content element for an attribute of a location page against its associated lowercase header.
+    For example "Address" and "Opening times"
+    :param location_page: BeautifulSoup object for a parsed Park and Ride location page.
+    :return: A map in the form {HEADER: CONTENT_ELEMENT}
+    """
+    details_div = location_page.find("div", attrs={"class", "park-and-ride-location"})
+    child_tags = [child for child in details_div.children if isinstance(child, Tag)]
+    grouped_tags_raw = [list(y) for x, y in itertools.groupby(child_tags, lambda z: z.name == "hr") if not x]
+    grouped_tags = [grouped_tags for grouped_tags in grouped_tags_raw if len(grouped_tags) == 2]
+    return {header_tag.text.lower(): content_tag for (header_tag, content_tag) in grouped_tags}
 
 
 def enrich_location(location: ParkAndRideLocation):
     location_page = BeautifulSoup(requests.get(TFGM_BASE_URL + location.url).text, "html.parser")
-    details_div = location_page.find("div", attrs={"class", "park-and-ride-location"})
-    location.address = extract_address(details_div)
-    location.opening_times = extract_opening_times(details_div)
-    location.capacity = extract_capacity(details_div)
-    location.cost = extract_cost(details_div)
-    location.overnight_parking = extract_overnight_parking(details_div)
+    location_content = fetch_headers_and_content(location_page)
+    location.address = extract_address(location_content["address"])
+    location.opening_times = extract_opening_times(location_content["opening times"])
+    location.capacity = extract_capacity(location_content["spaces"])
+    location.cost = extract_cost(location_content["charges"])
+    location.overnight_parking = extract_overnight_parking(location_content["other information"])
 
 
 def split_tag_list_on_hr(details_div):
