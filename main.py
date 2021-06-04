@@ -1,17 +1,18 @@
 import itertools
 import logging
 import re
+import requests
+
+from bs4 import BeautifulSoup, Tag
 from itertools import groupby
 
-import requests
-from bs4 import BeautifulSoup, Tag
+from progressbar import progressbar
 
 TFGM_BASE_URL = "https://tfgm.com"
 PARK_AND_RIDE_BASE_URL = TFGM_BASE_URL + "/public-transport/park-and-ride"
 
 
 class ParkAndRideLocation(object):
-
     __slots__ = ["name", "latitude", "longitude", "transport_mode", "url", "address", "opening_times", "capacity",
                  "cost", "overnight_parking"]
 
@@ -100,13 +101,23 @@ def split_tag_list_on_hr(details_div):
     return [list(group) for k, group in groupby(children, lambda x: x.name == "hr") if not k]
 
 
+def print_locations(locations):
+    for location in locations:
+        print(str(location) + "\n")
+
+
 def main():
+    logging.info(f"Fetching Park and Ride locations from {PARK_AND_RIDE_BASE_URL}")
     locations = fetch_park_and_ride_locations()
+    logging.info(f"Fetched {len(locations)} Park and Ride locations")
     if not locations:
         logging.error(f"Failed to fetch Park and Ride locations from {PARK_AND_RIDE_BASE_URL}")
-    for location in locations:
+    logging.info("Fetching additional information about each Park and Ride location")
+    for location in progressbar(locations, prefix="Enriching locations"):
         enrich_location(location)
-        print(str(location) + "\n")
+    logging.info("Enrichment complete")
+    locations.sort(key=lambda x: x.capacity["spaces"])
+    print_locations(locations)
 
 
 if __name__ == '__main__':
