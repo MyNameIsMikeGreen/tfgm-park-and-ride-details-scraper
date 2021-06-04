@@ -34,12 +34,12 @@ def transform_location_list_item(location_list_item):
     location.latitude = location_list_item.get("data-latitude")
     location.longitude = location_list_item.get("data-longitude")
     location.transport_mode = location_list_item.get("data-mode")
-    location.url = location_list_item.find("a").get("href")
+    location.url = TFGM_BASE_URL + location_list_item.find("a").get("href")
     return location
 
 
 def extract_address(content_element):
-    return content_element.get_text(", ")
+    return content_element.get_text(", ").strip()
 
 
 def extract_opening_times(content_element):
@@ -78,7 +78,7 @@ def fetch_headers_and_content(location_page):
 
 
 def enrich_location(location: ParkAndRideLocation):
-    location_page = BeautifulSoup(requests.get(TFGM_BASE_URL + location.url).text, "html.parser")
+    location_page = BeautifulSoup(requests.get(location.url).text, "html.parser")
     location_content = fetch_headers_and_content(location_page)
     location.address = extract_address(location_content["address"])
     location.opening_times = extract_opening_times(location_content["opening times"])
