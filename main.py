@@ -1,6 +1,8 @@
 import itertools
 import logging
 import re
+import sys
+
 import requests
 
 from bs4 import BeautifulSoup, Tag
@@ -124,5 +126,6 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO,
                         format='%(asctime)s - %(message)s',
                         datefmt='%Y-%m-%dT%H:%M:%S',
-                        handlers=[logging.StreamHandler(), logging.FileHandler('tfgmParkAndRideDetailsScraper.log')])
+                        handlers=[logging.StreamHandler(sys.stdout),
+                                  logging.FileHandler('tfgmParkAndRideDetailsScraper.log')])
     main()
