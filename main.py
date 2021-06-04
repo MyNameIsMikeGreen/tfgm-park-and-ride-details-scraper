@@ -1,5 +1,6 @@
 import itertools
 import logging
+import re
 from itertools import groupby
 
 import requests
@@ -52,7 +53,14 @@ def extract_opening_times(content_element):
 
 
 def extract_capacity(content_element):
-    return content_element.get_text().strip().replace("\n", ", ")
+    matches = re.findall("(\d+ .+)\n", content_element.get_text())
+    capacity_dict = {}
+    for match in matches:
+        split = match.split(" ", maxsplit=1)
+        capacity_type = split[1]
+        capacity = int(split[0])
+        capacity_dict[capacity_type] = capacity
+    return capacity_dict
 
 
 def extract_cost(content_element):
