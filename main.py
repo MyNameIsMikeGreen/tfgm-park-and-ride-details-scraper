@@ -19,9 +19,16 @@ class ParkAndRideLocation(object):
                  "cost", "overnight_parking"]
 
     def __str__(self):
-        return f"{self.name}\n\tLatitude: {self.latitude}\n\tLongitude: {self.longitude}\n" \
-               f"\tTransport Mode: {self.transport_mode}\n\tURL: {self.url}\n\tAddress: {self.address}\n" \
-               f"\tOpening Times: {self.opening_times}\n\tCapacity: {self.capacity}\n\tCost: {self.cost}\n" \
+        return f"{self.name}\n" \
+               f"\tLatitude: {self.latitude}\n" \
+               f"\tLongitude: {self.longitude}\n" \
+               f"\tLat-Long: ({self.latitude}, {self.longitude})\n" \
+               f"\tTransport Mode: {self.transport_mode}\n" \
+               f"\tURL: {self.url}\n" \
+               f"\tAddress: {self.address}\n" \
+               f"\tOpening Times: {self.opening_times}\n" \
+               f"\tCapacity: {self.capacity}\n" \
+               f"\tCost: {self.cost}\n" \
                f"\tOvernight Parking: {self.overnight_parking}"
 
 
